@@ -1,4 +1,4 @@
-# saves a workspace image called "maps_sf.RData"
+# saves RData files "maps_sf.RData", "grids_sf_nb.RData", "grids_sf_full.RData"
 
 
 library(tidyverse)
@@ -118,6 +118,9 @@ g4_sf <- india_sf %>%
 
 g4_nb_r <- poly2nb(g4_sf, queen = FALSE)
 g4_nb_q <- poly2nb(g4_sf)
+
+
+rm(cs, n)
 
 
 
