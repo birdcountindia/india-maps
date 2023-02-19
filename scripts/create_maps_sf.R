@@ -46,6 +46,14 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
   # them into one polygon
   group_by(STATE.NAME, DISTRICT.NAME) %>% 
   summarise() %>% # dplyr-sf magic :) 
+  ungroup() %>% 
+  mutate(STATE.NAME = str_to_title(STATE.NAME)) %>% 
+  # replacing ampersand with "and"
+  mutate(STATE.NAME = str_replace(STATE.NAME, "&", "and")) %>% 
+  # corrections for Madhu's SPDF values
+  mutate(STATE.NAME = case_when(STATE.NAME == "Dadra and Nagar Have" ~ "Dadra and Nagar Haveli",
+                                STATE.NAME == "Andaman and Nicobar" ~ "Andaman and Nicobar Islands",
+                                TRUE ~ STATE.NAME)) %>% 
   st_set_crs("OGC:CRS84")
 # https://gis.stackexchange.com/questions/421651/merging-two-multipolygon-shapefiles-and-removing-one-of-overlapping-polygons-usi
 
