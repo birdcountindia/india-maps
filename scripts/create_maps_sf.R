@@ -29,22 +29,22 @@ india_sf <- st_read(dsn = country_path, layer = country_file) %>% mutate(DISTRIC
 
 states_sf <- st_read(dsn = states_path, layer = states_file) %>% 
   dplyr::select(stname, geometry) %>% 
-  magrittr::set_colnames(c("STATE", "geometry")) %>% 
-  mutate(STATE = str_to_title(STATE)) %>% 
+  magrittr::set_colnames(c("STATE.NAME", "geometry")) %>% 
+  mutate(STATE.NAME = str_to_title(STATE.NAME)) %>% 
   # replacing ampersand with "and"
-  mutate(STATE = str_replace(STATE, "&", "and")) %>% 
+  mutate(STATE.NAME = str_replace(STATE.NAME, "&", "and")) %>% 
   # corrections for Madhu's SPDF values
-  mutate(STATE = case_when(STATE == "Dadra and Nagar Have" ~ "Dadra and Nagar Haveli",
-                           STATE == "Andaman and Nicobar" ~ "Andaman and Nicobar Islands",
-                           TRUE ~ STATE)) %>% 
+  mutate(STATE.NAME = case_when(STATE.NAME == "Dadra and Nagar Have" ~ "Dadra and Nagar Haveli",
+                                STATE.NAME == "Andaman and Nicobar" ~ "Andaman and Nicobar Islands",
+                                TRUE ~ STATE.NAME)) %>% 
   st_set_crs("OGC:CRS84")
 
 dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>% 
-  dplyr::select(dtname) %>% 
-  rename(DISTRICT.NAME = dtname) %>% 
+  dplyr::select(dtname, stname) %>% 
+  rename(DISTRICT.NAME = dtname, STATE.NAME = stname) %>% 
   # some districts have two different rows (two different polygons) so need to combine
   # them into one polygon
-  group_by(DISTRICT.NAME) %>% 
+  group_by(STATE.NAME, DISTRICT.NAME) %>% 
   summarise() %>% # dplyr-sf magic :) 
   st_set_crs("OGC:CRS84")
 # https://gis.stackexchange.com/questions/421651/merging-two-multipolygon-shapefiles-and-removing-one-of-overlapping-polygons-usi
