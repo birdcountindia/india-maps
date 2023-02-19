@@ -37,7 +37,7 @@ states_sf <- st_read(dsn = states_path, layer = states_file) %>%
   mutate(STATE = case_when(STATE == "Dadra and Nagar Have" ~ "Dadra and Nagar Haveli",
                            STATE == "Andaman and Nicobar" ~ "Andaman and Nicobar Islands",
                            TRUE ~ STATE)) %>% 
-  st_set_crs("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  st_set_crs("OGC:CRS84")
 
 dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>% 
   dplyr::select(dtname) %>% 
@@ -46,7 +46,7 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
   # them into one polygon
   group_by(DISTRICT.NAME) %>% 
   summarise() %>% # dplyr-sf magic :) 
-  st_set_crs("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  st_set_crs("OGC:CRS84")
 # https://gis.stackexchange.com/questions/421651/merging-two-multipolygon-shapefiles-and-removing-one-of-overlapping-polygons-usi
 
 
@@ -61,7 +61,9 @@ n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) 
 g1_sf <- india_sf %>% 
   st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
-  rename(geometry = x)
+  rename(geometry = x) %>% 
+  # cell IDs
+  rownames_to_column("CELL.ID")
 
 # neighbours
 # refer this issue https://github.com/r-spatial/sf/issues/234
@@ -78,7 +80,9 @@ n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) 
 g2_sf <- india_sf %>% 
   st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
-  rename(geometry = x)
+  rename(geometry = x) %>% 
+  # cell IDs
+  rownames_to_column("CELL.ID")
 
 g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
 g2_nb_q <- poly2nb(g2_sf)
@@ -89,13 +93,15 @@ res <- 3
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
-g2_sf <- india_sf %>% 
+g3_sf <- india_sf %>% 
   st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
-  rename(geometry = x)
+  rename(geometry = x) %>% 
+  # cell IDs
+  rownames_to_column("CELL.ID")
 
-g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
-g2_nb_q <- poly2nb(g2_sf)
+g3_nb_r <- poly2nb(g3_sf, queen = FALSE)
+g3_nb_q <- poly2nb(g3_sf)
 
 
 # g4
@@ -103,43 +109,56 @@ res <- 4
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
-g2_sf <- india_sf %>% 
+g4_sf <- india_sf %>% 
   st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
-  rename(geometry = x)
+  rename(geometry = x) %>% 
+  # cell IDs
+  rownames_to_column("CELL.ID")
 
-g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
-g2_nb_q <- poly2nb(g2_sf)
-
-
-# intersecting grids with admin boundaries --------------------------------
-
+g4_nb_r <- poly2nb(g4_sf, queen = FALSE)
+g4_nb_q <- poly2nb(g4_sf)
 
 
-# getting total number of cells ------------------------------------------
+
+# intersecting grids with admin boundaries and calculating areas, totcells -----------
+
+sf_use_s2(FALSE)
+
+# already in sq.m because switched off S2 so using planar
+india_sf <- india_sf %>% mutate(AREA = units::set_units(round(st_area(geometry)), "km2"))
+states_sf <- states_sf %>% mutate(AREA = units::set_units(round(st_area(geometry)), "km2"))
+dists_sf <- dists_sf %>% mutate(AREA = units::set_units(round(st_area(geometry)), "km2"))
 
 
-totcells_india <- g1cells_sf %>% 
-  st_drop_geometry() %>% 
-  dplyr::summarise(TOT.CELLS = n_distinct(CELL.ID))
+g1_in_sf <- st_intersection(g1_sf, india_sf) %>% 
+  mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
+         TOT.CELLS = n_distinct(CELL.ID))
+g2_in_sf <- st_intersection(g2_sf, india_sf) %>% 
+  mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
+         TOT.CELLS = n_distinct(CELL.ID))
+g3_in_sf <- st_intersection(g3_sf, india_sf) %>% 
+  mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
+         TOT.CELLS = n_distinct(CELL.ID))
+g4_in_sf <- st_intersection(g4_sf, india_sf) %>% 
+  mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
+         TOT.CELLS = n_distinct(CELL.ID))
 
 
-states_cells <- states_sf %>% 
-  st_set_crs(st_crs(g1cells_sf)) %>% 
-  st_join(g1cells_sf) %>% 
-  st_drop_geometry()
 
-totcells_states <- states_cells %>% 
-  group_by(STATE) %>% 
-  dplyr::summarise(TOT.CELLS = n_distinct(CELL.ID))
+# writing ---------------------------------------------------------------------------
 
+# all maps regularly used in analyses
+save(india_sf, states_sf, dists_sf,
+     grid_sizes_deg, grid_sizes_km, g1_in_sf, g2_in_sf, g3_in_sf, g4_in_sf,
+     file = "outputs/maps_sf.RData")
 
-districts_cells <- districts_sf %>% 
-  st_set_crs(st_crs(g1cells_sf)) %>% 
-  st_join(g1cells_sf) %>% 
-  st_drop_geometry() 
-# losing some districts and grid cells, but doesn't matter.
+# neighbour information for grids
+save(grid_sizes_deg, grid_sizes_km, 
+     g1_nb_q, g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r,
+     file = "outputs/grids_sf_nb.RData")
 
-totcells_dist <- districts_cells %>% 
-  group_by(DISTRICT.NAME) %>% 
-  dplyr::summarise(TOT.CELLS = n_distinct(CELL.ID))
+# full grids (not intersected with country boundary)
+save(grid_sizes_deg, grid_sizes_km, 
+     g1_sf, g2_sf, g3_sf, g4_sf,
+     file = "outputs/grids_sf_full.RData")
