@@ -25,7 +25,7 @@ grid_sizes_deg <- grid_sizes_km*1000/111111
 # reading maps ------------------------------------------------------------
 
 india_sf <- st_read(dsn = country_path, layer = country_file) %>% mutate(DISTRICT = NULL) %>% 
-  st_set_crs("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0")
+  st_set_crs("OGC:CRS84")
 
 states_sf <- st_read(dsn = states_path, layer = states_file) %>% 
   dplyr::select(stname, geometry) %>% 
@@ -54,51 +54,62 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
 # creating grids ----------------------------------------------------------
 
 # g1
+res <- 1 
+cs <- grid_sizes_deg[res]
+n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
 g1_sf <- india_sf %>% 
-  st_make_grid(cellsize = grid_sizes_deg[1],
-               n = (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/grid_sizes_deg[1]) %>% 
-                 ceiling()) %>% 
+  st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
   rename(geometry = x)
 
 # neighbours
 # refer this issue https://github.com/r-spatial/sf/issues/234
 # https://en.wikipedia.org/wiki/DE-9IM
-
-st_rook <- function(a, b = a) st_relate(a, b, pattern = "F***1****")
-st_queen <- function(a, b = a) st_relate(a, b, pattern = "F***T****")
-
-g1_sf %>% mutate(NB_ROOK = st_rook(.),
-                 NB_QUEEN = st_queen(.))
+g1_nb_r <- poly2nb(g1_sf, queen = FALSE)
+g1_nb_q <- poly2nb(g1_sf)
 
 
 # g2
+res <- 2
+cs <- grid_sizes_deg[res]
+n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
 g2_sf <- india_sf %>% 
-  st_make_grid(cellsize = grid_sizes_deg[2],
-               n = (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/grid_sizes_deg[2]) %>% 
-                 ceiling()) %>% 
+  st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
   rename(geometry = x)
+
+g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
+g2_nb_q <- poly2nb(g2_sf)
+
 
 # g3
+res <- 3
+cs <- grid_sizes_deg[res]
+n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
-g3_sf <- india_sf %>% 
-  st_make_grid(cellsize = grid_sizes_deg[3],
-               n = (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/grid_sizes_deg[3]) %>% 
-                 ceiling()) %>% 
+g2_sf <- india_sf %>% 
+  st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
   rename(geometry = x)
+
+g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
+g2_nb_q <- poly2nb(g2_sf)
+
 
 # g4
+res <- 4
+cs <- grid_sizes_deg[res]
+n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
-g4_sf <- india_sf %>% 
-  st_make_grid(cellsize = grid_sizes_deg[4],
-               n = (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/grid_sizes_deg[4]) %>% 
-                 ceiling()) %>% 
+g2_sf <- india_sf %>% 
+  st_make_grid(cellsize = cs, n = n) %>% 
   st_as_sf() %>% 
   rename(geometry = x)
+
+g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
+g2_nb_q <- poly2nb(g2_sf)
 
 
 # intersecting grids with admin boundaries --------------------------------
