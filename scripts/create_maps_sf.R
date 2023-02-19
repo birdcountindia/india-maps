@@ -8,9 +8,9 @@ library(spdep)
 
 # requires shapefiles and several packages
 # provide path to folder and name of file within
-country_path <- "data/in_2011/"
-states_path <- "data/in_states_2019/"
-dists_path <- "data/in_dists_2019/"
+country_path <- "data/in_2011"
+states_path <- "data/in_states_2019"
+dists_path <- "data/in_dists_2019"
 
 country_file <- "India_2011"
 states_file <- "in_states_2019"
