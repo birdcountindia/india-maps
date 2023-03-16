@@ -71,7 +71,7 @@ g1_sf <- india_sf %>%
   st_as_sf() %>% 
   rename(geometry = x) %>% 
   # cell IDs
-  rownames_to_column("CELL.ID")
+  rownames_to_column("GRID.G1")
 
 # neighbours
 # refer this issue https://github.com/r-spatial/sf/issues/234
@@ -90,7 +90,7 @@ g2_sf <- india_sf %>%
   st_as_sf() %>% 
   rename(geometry = x) %>% 
   # cell IDs
-  rownames_to_column("CELL.ID")
+  rownames_to_column("GRID.G2")
 
 g2_nb_r <- poly2nb(g2_sf, queen = FALSE)
 g2_nb_q <- poly2nb(g2_sf)
@@ -106,7 +106,7 @@ g3_sf <- india_sf %>%
   st_as_sf() %>% 
   rename(geometry = x) %>% 
   # cell IDs
-  rownames_to_column("CELL.ID")
+  rownames_to_column("GRID.G3")
 
 g3_nb_r <- poly2nb(g3_sf, queen = FALSE)
 g3_nb_q <- poly2nb(g3_sf)
@@ -122,7 +122,7 @@ g4_sf <- india_sf %>%
   st_as_sf() %>% 
   rename(geometry = x) %>% 
   # cell IDs
-  rownames_to_column("CELL.ID")
+  rownames_to_column("GRID.G4")
 
 g4_nb_r <- poly2nb(g4_sf, queen = FALSE)
 g4_nb_q <- poly2nb(g4_sf)
@@ -144,16 +144,16 @@ dists_sf <- dists_sf %>% mutate(AREA = units::set_units(round(st_area(geometry))
 
 g1_in_sf <- st_intersection(g1_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(CELL.ID))
+         TOT.CELLS = n_distinct(GRID.G1))
 g2_in_sf <- st_intersection(g2_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(CELL.ID))
+         TOT.CELLS = n_distinct(GRID.G2))
 g3_in_sf <- st_intersection(g3_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(CELL.ID))
+         TOT.CELLS = n_distinct(GRID.G3))
 g4_in_sf <- st_intersection(g4_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(CELL.ID))
+         TOT.CELLS = n_distinct(GRID.G4))
 
 
 
