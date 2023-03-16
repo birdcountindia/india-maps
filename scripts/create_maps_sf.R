@@ -144,16 +144,16 @@ dists_sf <- dists_sf %>% mutate(AREA = units::set_units(round(st_area(geometry))
 
 g1_in_sf <- st_intersection(g1_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(GRID.G1))
+         TOT.G1 = n_distinct(GRID.G1))
 g2_in_sf <- st_intersection(g2_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(GRID.G2))
+         TOT.G2 = n_distinct(GRID.G2))
 g3_in_sf <- st_intersection(g3_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(GRID.G3))
+         TOT.G3 = n_distinct(GRID.G3))
 g4_in_sf <- st_intersection(g4_sf, india_sf) %>% 
   mutate(AREA = units::set_units(round(st_area(geometry)), "km2"),
-         TOT.CELLS = n_distinct(GRID.G4))
+         TOT.G4 = n_distinct(GRID.G4))
 
 
 
