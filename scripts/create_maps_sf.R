@@ -26,8 +26,10 @@ grid_sizes_deg <- grid_sizes_km*1000/111111
 
 sf_use_s2(FALSE)
 
+
 india_sf <- st_read(dsn = country_path, layer = country_file) %>% mutate(DISTRICT = NULL) %>% 
   st_set_crs("OGC:CRS84")
+
 
 states_sf <- st_read(dsn = states_path, layer = states_file) %>% 
   dplyr::select(stname, geometry) %>% 
@@ -41,6 +43,17 @@ states_sf <- st_read(dsn = states_path, layer = states_file) %>%
                                 TRUE ~ STATE.NAME)) %>% 
   st_set_crs("OGC:CRS84") %>% 
   rename(STATE.GEOM = geometry)
+
+# to crop Puducherry areas from other states' areas
+pondi <- states_sf %>% filter(STATE.NAME == "Puducherry")
+problem <- states_sf %>% filter(STATE.NAME %in% c("Tamil Nadu", "Kerala", "Andhra Pradesh"))
+diff <- st_difference(problem, pondi) %>% dplyr::select(-STATE.NAME.1)
+
+rest <- states_sf %>% filter(!(STATE.NAME %in% c("Puducherry", 
+                                                 "Tamil Nadu", "Kerala", "Andhra Pradesh")))
+
+states_sf <- bind_rows(rest, diff, pondi)
+
 
 dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>% 
   dplyr::select(dtname, stname) %>% 
@@ -56,6 +69,7 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
   # replacing ampersand with "and"
   mutate(STATE.NAME = str_replace(STATE.NAME, "&", "and"),
          DISTRICT.NAME = str_replace(DISTRICT.NAME, "&", "and")) %>% 
+  mutate(DISTRICT.NAME = str_replace(DISTRICT.NAME, "  ", " ")) %>% 
   # corrections for Madhu's SPDF values
   mutate(STATE.NAME = case_when(STATE.NAME == "Dadra and Nagar Have" ~ "Dadra and Nagar Haveli",
                                 STATE.NAME == "Andaman and Nicobar" ~ "Andaman and Nicobar Islands",
