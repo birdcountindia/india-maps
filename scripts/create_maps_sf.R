@@ -85,8 +85,8 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
                                    DISTRICT.NAME == "Mahrajganj" ~ "Maharajganj",
                                    str_detect(DISTRICT.NAME, "North Twenty Four") ~ "North 24 Parganas",
                                    str_detect(DISTRICT.NAME, "South Twenty Four") ~ "South 24 Parganas",
-                                   str_detect(DISTRICT.NAME, "Sri Potti Sriramulu") ~ "	
-Sri Potti Sriramulu Nellore",
+                                   str_detect(DISTRICT.NAME, "Sri Potti Sriramulu") ~ "Sri Potti Sriramulu Nellore",
+                                   str_detect(DISTRICT.NAME, "Sahibzada Ajit Singh Nag") ~ "Sahibzada Ajit Singh Nagar",
                                    TRUE ~ DISTRICT.NAME)) %>% 
   st_set_crs("OGC:CRS84")
 # https://gis.stackexchange.com/questions/421651/merging-two-multipolygon-shapefiles-and-removing-one-of-overlapping-polygons-usi
