@@ -9,3 +9,5 @@
 *.xlsx
 *.RData
 *.txt
+
+outputs/temp_outputs/
