@@ -17,14 +17,14 @@ states_file <- "in_states_2019"
 dists_file <- "in_dist_2019"
 
 # grid sizes can be changed
-grid_sizes_km <- c(25, 50, 100, 200)
+grid_sizes_km <- c(5, 25, 50, 100, 200)
 grid_sizes_deg <- grid_sizes_km*1000/111111
 
 
+sf_use_s2(FALSE)
+
 
 # reading maps ------------------------------------------------------------
-
-sf_use_s2(FALSE)
 
 
 india_sf <- st_read(dsn = country_path, layer = country_file) %>% mutate(DISTRICT = NULL) %>% 
@@ -95,8 +95,21 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
 
 # creating grids ----------------------------------------------------------
 
+# g0 (sg1, 5km)
+res <- 1
+cs <- grid_sizes_deg[res]
+n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
+
+g0_sf <- india_sf %>% 
+  st_make_grid(cellsize = cs, n = n) %>% 
+  st_as_sf() %>% 
+  rename(GEOM.G0 = x) %>% 
+  # cell IDs
+  rownames_to_column("GRID.G0")
+
+
 # g1
-res <- 1 
+res <- 2 
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
@@ -115,7 +128,7 @@ g1_nb_q <- poly2nb(g1_sf)
 
 
 # g2
-res <- 2
+res <- 3
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
@@ -131,7 +144,7 @@ g2_nb_q <- poly2nb(g2_sf)
 
 
 # g3
-res <- 3
+res <- 4
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
@@ -147,7 +160,7 @@ g3_nb_q <- poly2nb(g3_sf)
 
 
 # g4
-res <- 4
+res <- 5
 cs <- grid_sizes_deg[res]
 n <- (c(diff(st_bbox(india_sf)[c(1, 3)]), diff(st_bbox(india_sf)[c(2, 4)]))/cs) %>% ceiling()
 
@@ -174,6 +187,9 @@ states_sf <- states_sf %>% mutate(AREA = units::set_units(round(st_area(STATE.GE
 dists_sf <- dists_sf %>% mutate(AREA = units::set_units(round(st_area(DISTRICT.GEOM)), "km2"))
 
 
+g0_in_sf <- st_intersection(g0_sf, india_sf) %>% 
+  mutate(AREA.G0 = units::set_units(round(st_area(GEOM.G0)), "km2"),
+         TOT.G0 = n_distinct(GRID.G0))
 g1_in_sf <- st_intersection(g1_sf, india_sf) %>% 
   mutate(AREA.G1 = units::set_units(round(st_area(GEOM.G1)), "km2"),
          TOT.G1 = n_distinct(GRID.G1))
@@ -205,3 +221,7 @@ save(grid_sizes_deg, grid_sizes_km,
 save(grid_sizes_deg, grid_sizes_km, 
      g1_sf, g2_sf, g3_sf, g4_sf,
      file = "outputs/grids_sf_full.RData")
+
+# g0 separately
+save(g0_sf, g0_in_sf,
+     file = "outputs/grids_g0_sf.RData")
