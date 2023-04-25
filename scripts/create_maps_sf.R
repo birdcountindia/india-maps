@@ -32,6 +32,13 @@ sf_use_s2(FALSE)
 india_sf <- st_read(dsn = country_path, layer = country_file) %>% mutate(DISTRICT = NULL) %>% 
   st_set_crs("OGC:CRS84")
 
+# creating a 1km-buffered India boundary, only used to remove pelagic lists 
+# (retains many lists from intertidal zones that should not be removed)
+india_buff_sf <- india_sf %>% 
+  st_buffer(dist = 1*1000/111111, # 1km; same km-deg formula used in grid-size calc
+            singleSide = TRUE,
+            of_largest_polygon = TRUE)
+
 
 states_sf <- st_read(dsn = states_path, layer = states_file) %>% 
   dplyr::select(stname, geometry) %>% 
@@ -214,6 +221,7 @@ g4_in_sf <- st_intersection(g4_sf, india_sf) %>%
 
 # all maps regularly used in analyses
 save(india_sf, states_sf, dists_sf,
+     india_buff_sf,
      grid_sizes_deg, grid_sizes_km, g1_in_sf, g2_in_sf, g3_in_sf, g4_in_sf,
      file = "outputs/maps_sf.RData")
 
