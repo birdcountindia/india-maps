@@ -1,4 +1,4 @@
-# saves RData files "maps_sf.RData", "grids_sf_nb.RData", "grids_sf_full.RData"
+# saves RData files (see section "writing" for names)
 
 
 library(tidyverse)
@@ -11,10 +11,12 @@ library(spdep)
 country_path <- "data/in_2011"
 states_path <- "data/in_states_2019"
 dists_path <- "data/in_dists_2019"
+pa_path <- "data/PA_Boundaries"
 
 country_file <- "India_2011"
 states_file <- "in_states_2019"
 dists_file <- "in_dist_2019"
+pa_file <- "pa_bounds"
 
 # grid sizes can be changed
 grid_sizes_km <- c(5, 25, 50, 100, 200)
@@ -90,6 +92,9 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
                                    TRUE ~ DISTRICT.NAME)) %>% 
   st_set_crs("OGC:CRS84")
 # https://gis.stackexchange.com/questions/421651/merging-two-multipolygon-shapefiles-and-removing-one-of-overlapping-polygons-usi
+
+
+pa_sf <- st_read(dsn = pa_path, layer = pa_file) %>% st_set_crs("OGC:CRS84")
 
 
 
@@ -185,7 +190,7 @@ rm(cs, n)
 india_sf <- india_sf %>% mutate(AREA = units::set_units(round(st_area(geometry)), "km2"))
 states_sf <- states_sf %>% mutate(AREA = units::set_units(round(st_area(STATE.GEOM)), "km2"))
 dists_sf <- dists_sf %>% mutate(AREA = units::set_units(round(st_area(DISTRICT.GEOM)), "km2"))
-
+pa_sf <- pa_sf %>% mutate(AREA = units::set_units(round(st_area(geometry)), "km2"))
 
 g0_in_sf <- st_intersection(g0_sf, india_sf) %>% 
   mutate(AREA.G0 = units::set_units(round(st_area(GEOM.G0)), "km2"),
@@ -212,6 +217,10 @@ save(india_sf, states_sf, dists_sf,
      grid_sizes_deg, grid_sizes_km, g1_in_sf, g2_in_sf, g3_in_sf, g4_in_sf,
      file = "outputs/maps_sf.RData")
 
+# PA maps separately
+save(pa_sf,
+     file = "outputs/maps_pa_sf.RData")
+
 # neighbour information for grids
 save(grid_sizes_deg, grid_sizes_km, 
      g1_nb_q, g1_nb_r, g2_nb_q, g2_nb_r, g3_nb_q, g3_nb_r, g4_nb_q, g4_nb_r,
@@ -222,6 +231,6 @@ save(grid_sizes_deg, grid_sizes_km,
      g1_sf, g2_sf, g3_sf, g4_sf,
      file = "outputs/grids_sf_full.RData")
 
-# g0 separately
+# g0 (5kmx5km) separately
 save(g0_sf, g0_in_sf,
      file = "outputs/grids_g0_sf.RData")

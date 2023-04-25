@@ -11,3 +11,7 @@
 *.txt
 
 outputs/temp_outputs/
+
+# PAs
+data/PA_Boundaries/
+outputs/maps_pa_sf.RData
