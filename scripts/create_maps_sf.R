@@ -88,6 +88,8 @@ dists_sf <- st_read(dsn = dists_path, layer = dists_file) %>%
                                    DISTRICT.NAME == "Raigarh" ~ "Raigad",
                                    DISTRICT.NAME == "Nicobars" ~ "Nicobar",
                                    DISTRICT.NAME == "Darjiling" ~ "Darjeeling",
+                                   DISTRICT.NAME == "Puruliya" ~ "Purulia",
+                                   DISTRICT.NAME == "Maldah" ~ "Malda",
                                    DISTRICT.NAME == "Ahmadabad" ~ "Ahmedabad",
                                    DISTRICT.NAME == "West District" ~ "West Sikkim",
                                    DISTRICT.NAME == "Jagatsinghapur" ~ "Jagatsinghpur",
