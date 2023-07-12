@@ -18,8 +18,9 @@ bt_states_sf <- st_read(dsn = "data/bt_2020", layer = "bt_2020_adm1") %>%
   st_set_crs("OGC:CRS84")
 
 bt_dists_sf <- st_read(dsn = "data/bt_2020", layer = "bt_2020_adm2") %>% 
-  dplyr::select(ADM2_EN, ADM0_EN, geometry) %>% 
+  dplyr::select(ADM2_EN, ADM1_EN, ADM0_EN, geometry) %>% 
   rename(DISTRICT.NAME = ADM2_EN,
+         STATE.NAME = ADM1_EN,
          COUNTRY = ADM0_EN,
          DISTRICT.GEOM = geometry) %>% 
   st_set_crs("OGC:CRS84")
@@ -49,11 +50,15 @@ np_states_sf <- np_sf0 %>%
 
 np_dists_sf <- np_sf0 %>% 
   mutate(COUNTRY = "Nepal") %>% 
-  group_by(COUNTRY, DISTRICT) %>% 
+  group_by(COUNTRY, Province, DISTRICT) %>% 
   dplyr::summarise() %>% 
-  rename(DISTRICT.NAME = DISTRICT,
+  rename(STATE.NAME = Province,
+         DISTRICT.NAME = DISTRICT,
          DISTRICT.GEOM = geometry) %>% 
-  st_transform("OGC:CRS84")
+  st_transform("OGC:CRS84") %>% 
+  # adding "Province" to names
+  mutate(STATE.NAME = case_when(STATE.NAME %in% c(1, 2, 5) ~ glue("Province {STATE.NAME}"),
+                                TRUE ~ STATE.NAME))
 
 
 # saving maps
